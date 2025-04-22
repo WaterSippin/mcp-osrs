@@ -6,7 +6,7 @@ homepage: "https://github.com/jayarrowz/mcp-osrs"
 build:
   dockerfile: Dockerfile
 
-run:
+startCommand:
   command: node
   args:
     - dist/index.js
