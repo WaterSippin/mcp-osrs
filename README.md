@@ -6,6 +6,7 @@ MCP Server for interacting with the Old School RuneScape (OSRS) Wiki API and dat
 
 ![image](https://github.com/user-attachments/assets/9e7e4e07-6e47-44f9-ab0c-b3835418bd37)
 
+![image](https://github.com/user-attachments/assets/628f35e1-2e85-42f4-8693-4ef4f16591d4)
 
 
 ## Tools
