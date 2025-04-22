@@ -1,0 +1,53 @@
+name: "@jayarrowz/mcp-osrs"
+description: "MCP server for Old School RuneScape Wiki API"
+version: 0.7.0
+homepage: "https://github.com/jayarrowz/mcp-osrs"
+
+build:
+  dockerfile: Dockerfile
+
+run:
+  command: node
+  args:
+    - dist/index.js
+
+capabilities:
+  tools:
+    - name: "osrs_wiki_search"
+      description: "Search the OSRS Wiki for pages matching a search term."
+    - name: "osrs_wiki_get_page_info"
+      description: "Get information about specific pages on the OSRS Wiki."
+    - name: "osrs_wiki_parse_page"
+      description: "Get the parsed HTML content of a specific OSRS Wiki page."
+    - name: "search_varptypes"
+      description: "Search the varptypes.txt file for player variables (varps) that store player state and progress."
+    - name: "search_varbittypes"
+      description: "Search the varbittypes.txt file for variable bits (varbits) that store individual bits from varps."
+    - name: "search_iftypes"
+      description: "Search the iftypes.txt file for interface definitions used in the game's UI."
+    - name: "search_invtypes"
+      description: "Search the invtypes.txt file for inventory type definitions in the game."
+    - name: "search_loctypes"
+      description: "Search the loctypes.txt file for location/object type definitions in the game world."
+    - name: "search_npctypes"
+      description: "Search the npctypes.txt file for NPC (non-player character) definitions."
+    - name: "search_objtypes"
+      description: "Search the objtypes.txt file for object/item definitions in the game."
+    - name: "search_rowtypes"
+      description: "Search the rowtypes.txt file for row definitions used in various interfaces."
+    - name: "search_seqtypes"
+      description: "Search the seqtypes.txt file for animation sequence definitions."
+    - name: "search_soundtypes"
+      description: "Search the soundtypes.txt file for sound effect definitions in the game."
+    - name: "search_spottypes"
+      description: "Search the spottypes.txt file for spot animation (graphical effect) definitions."
+    - name: "search_spritetypes"
+      description: "Search the spritetypes.txt file for sprite image definitions used in the interface."
+    - name: "search_tabletypes"
+      description: "Search the tabletypes.txt file for interface tab definitions."
+    - name: "search_data_file"
+      description: "Search any file in the data directory for matching entries."
+    - name: "get_file_details"
+      description: "Get details about a file in the data directory."
+    - name: "list_data_files"
+      description: "List available data files in the data directory." 
