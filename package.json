@@ -1,0 +1,41 @@
+{
+  "name": "@jayarrowz/mcp-osrs",
+  "version": "0.7.0",
+  "description": "MCP server for Old School RuneScape Wiki API",
+  "license": "MIT",
+  "author": "Jay Arrowz (https://github.com/jayarrowz)",
+  "homepage": "https://github.com/jayarrowz/mcp-osrs",
+  "bugs": "https://github.com/jayarrowz/mcp-osrs/issues",
+  "type": "module",
+  "bin": {
+    "mcp-osrs": "dist/index.js"
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "rimraf ./dist && tsc && shx chmod +x dist/*.js && npm run copy-data",
+    "prepare": "npm run build",
+    "watch": "tsc --watch",
+    "generate-api": "npx swagger-typescript-api -p openapi.yaml -o ./src/api/ --axios",
+    "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js",
+    "start": "node dist/index.js",
+    "copy-data": "copyfiles -u 1 \"data/**/*\" dist/data"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.7.0",
+    "axios": "^1.8.4",
+    "axios-retry": "^4.5.0",
+    "zod": "^3.24.2",
+    "zod-to-json-schema": "^3.24.4"
+  },
+  "devDependencies": {
+    "@types/jest": "^29.5.12",
+    "copyfiles": "^2.4.1",
+    "jest": "^29.7.0",
+    "rimraf": "^6.0.1",
+    "shx": "^0.3.4",
+    "ts-jest": "^29.1.2",
+    "typescript": "^5.6.2"
+  }
+}
