@@ -7,9 +7,18 @@ build:
   dockerfile: Dockerfile
 
 startCommand:
-  command: node
-  args:
-    - dist/index.js
+  type: "stdio"
+  configSchema:
+    type: "object"
+    properties: {}
+    additionalProperties: false
+  commandFunction: |
+    function(config) {
+      return {
+        command: "node",
+        args: ["dist/index.js"]
+      };
+    }
 
 capabilities:
   tools:
