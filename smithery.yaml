@@ -1,21 +1,13 @@
-name: "@jayarrowz/mcp-osrs"
-description: "MCP server for Old School RuneScape Wiki API"
-version: 0.7.0
-homepage: "https://github.com/jayarrowz/mcp-osrs"
-
-build:
-  dockerfile: Dockerfile
-
 startCommand:
   type: "stdio"
   configSchema:
     type: "object"
     properties: {}
     additionalProperties: false
-  commandFunction: |
-    function(config) {
-      return {
-        command: "node",
-        args: ["dist/index.js"]
-      };
-    }
+  commandFunction:
+    # A JS function that produces the CLI command based on the given config to start the MCP on stdio.
+    |-
+    (config) => ({
+      command: 'node',
+      args: ['dist/index.js']
+    })
