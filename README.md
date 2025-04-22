@@ -1,4 +1,4 @@
-# OSRS MCP Server [![smithery badge](https://smithery.ai/badge/jayarrowz/mcp-osrs)](https://smithery.ai/server/jayarrowz/mcp-osrs)
+# OSRS MCP Server [![smithery badge](https://smithery.ai/badge/@jayarrowz/mcp-osrs)](https://smithery.ai/server/@jayarrowz/mcp-osrs)
 
 MCP Server for interacting with the Old School RuneScape (OSRS) Wiki API and data files. This server provides tools to search the OSRS Wiki and access game data definitions through the Model Context Protocol.
 
@@ -34,7 +34,7 @@ This server implements the following tools:
 ## Installation
 
 ### Installing via Smithery
-To install mcp-osrs for Claude Desktop automatically via [Smithery](https://smithery.ai/embed/jayarrowz/mcp-osrs):
+To install mcp-osrs for Claude Desktop automatically via [Smithery](https://smithery.ai/embed/@jayarrowz/mcp-osrs):
 
 ```bash
 npx @smithery/cli@latest install @jayarrowz/mcp-osrs --client claude
