@@ -477,10 +477,10 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
 
 async function main() {
     try {
-        console.log("Starting MCP OSRS Server...");
+        //console.log("Starting MCP OSRS Server...");
         const transport = new StdioServerTransport();
         await server.connect(transport);
-        console.log("MCP OSRS Server running on stdio");
+        //console.log("MCP OSRS Server running on stdio");
     } catch (error) {
         console.error("Error during startup:", error);
         process.exit(1);
