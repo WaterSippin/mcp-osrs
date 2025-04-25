@@ -2,6 +2,10 @@
 
 MCP Server for interacting with the Old School RuneScape (OSRS) Wiki API and data files. This server provides tools to search the OSRS Wiki and access game data definitions through the Model Context Protocol.
 
+<a href="https://glama.ai/mcp/servers/@JayArrowz/mcp-osrs">
+  <img width="380" height="200" src="https://glama.ai/mcp/servers/@JayArrowz/mcp-osrs/badge" alt="OSRS Server MCP server" />
+</a>
+
 ![image](https://github.com/user-attachments/assets/da9d1f48-513d-4a1b-a65b-56f8a012fa83)
 
 ![image](https://github.com/user-attachments/assets/9e7e4e07-6e47-44f9-ab0c-b3835418bd37)
