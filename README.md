@@ -74,7 +74,7 @@ Add the following to your `claude_desktop_config.json`:
   "mcpServers": {
     "osrs": {
       "command": "npx",
-      "args": ["@jayarrowz/mcp-osrs"]
+      "args": ["-y", "@jayarrowz/mcp-osrs"]
     }
   }
 }
