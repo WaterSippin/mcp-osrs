@@ -239,114 +239,128 @@ function listDataFiles(fileType?: string): string[] {
     }
 }
 
-// Pre-computed schemas to avoid runtime conversion during tool listing
-const toolSchemas = {
-    osrsWikiSearch: convertZodToJsonSchema(OsrsWikiSearchSchema),
-    osrsWikiGetPageInfo: convertZodToJsonSchema(OsrsWikiGetPageInfoSchema),
-    osrsWikiParsePage: convertZodToJsonSchema(OsrsWikiParsePageSchema),
-    fileSearch: convertZodToJsonSchema(FileSearchSchema),
-    genericFileSearch: convertZodToJsonSchema(GenericFileSearchSchema),
-    fileDetails: convertZodToJsonSchema(FileDetailsSchema),
-    listDataFiles: convertZodToJsonSchema(ListDataFilesSchema),
-};
+// Lazy schema cache to avoid conversion during module loading
+let toolSchemas: any = null;
 
-// Lazy-loaded tool definitions - no file system access during listing
+function getToolSchemas() {
+    if (!toolSchemas) {
+        toolSchemas = {
+            osrsWikiSearch: convertZodToJsonSchema(OsrsWikiSearchSchema),
+            osrsWikiGetPageInfo: convertZodToJsonSchema(OsrsWikiGetPageInfoSchema),
+            osrsWikiParsePage: convertZodToJsonSchema(OsrsWikiParsePageSchema),
+            fileSearch: convertZodToJsonSchema(FileSearchSchema),
+            genericFileSearch: convertZodToJsonSchema(GenericFileSearchSchema),
+            fileDetails: convertZodToJsonSchema(FileDetailsSchema),
+            listDataFiles: convertZodToJsonSchema(ListDataFilesSchema),
+        };
+    }
+    return toolSchemas;
+}
+
+// Get schema for validation during tool calls only
+function getSchemaForTool(toolName: string) {
+    const schemas = getToolSchemas();
+    
+    switch (toolName) {
+        case "osrs_wiki_search":
+            return OsrsWikiSearchSchema;
+        case "osrs_wiki_get_page_info":
+            return OsrsWikiGetPageInfoSchema;
+        case "osrs_wiki_parse_page":
+            return OsrsWikiParsePageSchema;
+        case "search_data_file":
+            return GenericFileSearchSchema;
+        case "get_file_details":
+            return FileDetailsSchema;
+        case "list_data_files":
+            return ListDataFilesSchema;
+        default:
+            // File search tools
+            if (toolName.startsWith("search_")) {
+                return FileSearchSchema;
+            }
+            throw new Error(`Unknown tool: ${toolName}`);
+    }
+}
+
+// Ultra-fast tool listing - no schemas computed during discovery
 function getToolDefinitions() {
     return [
         {
             name: "osrs_wiki_search",
             description: "Search the OSRS Wiki for pages matching a search term.",
-            inputSchema: toolSchemas.osrsWikiSearch,
         },
         {
-            name: "osrs_wiki_get_page_info",
+            name: "osrs_wiki_get_page_info", 
             description: "Get information about specific pages on the OSRS Wiki.",
-            inputSchema: toolSchemas.osrsWikiGetPageInfo,
         },
         {
             name: "osrs_wiki_parse_page",
             description: "Get the parsed HTML content of a specific OSRS Wiki page.",
-            inputSchema: toolSchemas.osrsWikiParsePage,
         },
         {
             name: "search_varptypes",
             description: "Search the varptypes.txt file for player variables (varps) that store player state and progress.",
-            inputSchema: toolSchemas.fileSearch,
         },
         {
             name: "search_varbittypes",
             description: "Search the varbittypes.txt file for variable bits (varbits) that store individual bits from varps.",
-            inputSchema: toolSchemas.fileSearch,
         },
         {
             name: "search_iftypes",
             description: "Search the iftypes.txt file for interface definitions used in the game's UI.",
-            inputSchema: toolSchemas.fileSearch,
         },
         {
             name: "search_invtypes",
             description: "Search the invtypes.txt file for inventory type definitions in the game.",
-            inputSchema: toolSchemas.fileSearch,
         },
         {
             name: "search_loctypes",
             description: "Search the loctypes.txt file for location/object type definitions in the game world.",
-            inputSchema: toolSchemas.fileSearch,
         },
         {
             name: "search_npctypes",
             description: "Search the npctypes.txt file for NPC (non-player character) definitions.",
-            inputSchema: toolSchemas.fileSearch,
         },
         {
             name: "search_objtypes",
             description: "Search the objtypes.txt file for object/item definitions in the game.",
-            inputSchema: toolSchemas.fileSearch,
         },
         {
             name: "search_rowtypes",
             description: "Search the rowtypes.txt file for row definitions used in various interfaces.",
-            inputSchema: toolSchemas.fileSearch,
         },
         {
             name: "search_seqtypes",
             description: "Search the seqtypes.txt file for animation sequence definitions.",
-            inputSchema: toolSchemas.fileSearch,
         },
         {
             name: "search_soundtypes",
             description: "Search the soundtypes.txt file for sound effect definitions in the game.",
-            inputSchema: toolSchemas.fileSearch,
         },
         {
             name: "search_spottypes",
             description: "Search the spottypes.txt file for spot animation (graphical effect) definitions.",
-            inputSchema: toolSchemas.fileSearch,
         },
         {
             name: "search_spritetypes",
             description: "Search the spritetypes.txt file for sprite image definitions used in the interface.",
-            inputSchema: toolSchemas.fileSearch,
         },
         {
             name: "search_tabletypes",
             description: "Search the tabletypes.txt file for interface tab definitions.",
-            inputSchema: toolSchemas.fileSearch,
         },
         {
             name: "search_data_file",
             description: "Search any file in the data directory for matching entries.",
-            inputSchema: toolSchemas.genericFileSearch,
         },
         {
             name: "get_file_details",
             description: "Get details about a file in the data directory.",
-            inputSchema: toolSchemas.fileDetails,
         },
         {
             name: "list_data_files",
             description: "List available data files in the data directory.",
-            inputSchema: toolSchemas.listDataFiles,
         },
     ];
 }
@@ -363,7 +377,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
     try {
         switch (name) {
             case "osrs_wiki_search":
-                const { search, limit = 10, offset = 0 } = OsrsWikiSearchSchema.parse(args);
+                const { search, limit = 10, offset = 0 } = getSchemaForTool(name).parse(args);
                 const searchResponse = await osrsApiClient.get('', {
                     params: {
                         action: 'query',
@@ -377,7 +391,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
                 return responseToString(searchResponse.data);
 
             case "osrs_wiki_get_page_info":
-                const { titles } = OsrsWikiGetPageInfoSchema.parse(args);
+                const { titles } = getSchemaForTool(name).parse(args);
                 const pageInfoResponse = await osrsApiClient.get('', {
                     params: {
                         action: 'query',
@@ -388,7 +402,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
                 return responseToString(pageInfoResponse.data);
 
             case "osrs_wiki_parse_page":
-                const { page } = OsrsWikiParsePageSchema.parse(args);
+                const { page } = getSchemaForTool(name).parse(args);
                 const parseResponse = await osrsApiClient.get('', {
                     params: {
                         action: 'parse',
@@ -412,7 +426,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
             case "search_spottypes":
             case "search_spritetypes":
             case "search_tabletypes":
-                const { query, page: filePage = 1, pageSize: filePageSize = 10 } = FileSearchSchema.parse(args);
+                const { query, page: filePage = 1, pageSize: filePageSize = 10 } = getSchemaForTool(name).parse(args);
                 const filename = `${name.replace('search_', '')}.txt`;
                 const filePath = path.join(getDataDir(), filename);
                 
@@ -424,7 +438,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
                 return responseToString(fileResults);
 
             case "search_data_file":
-                const { filename: genericFilename, query: searchQuery, page: genericFilePage = 1, pageSize: genericFilePageSize = 10 } = GenericFileSearchSchema.parse(args);
+                const { filename: genericFilename, query: searchQuery, page: genericFilePage = 1, pageSize: genericFilePageSize = 10 } = getSchemaForTool(name).parse(args);
                 
                 // Security check to prevent directory traversal
                 if (genericFilename.includes('..') || genericFilename.includes('/') || genericFilename.includes('\\')) {
@@ -440,7 +454,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
                 return responseToString(genericFileResults);
 
             case "get_file_details":
-                const { filename: detailsFilename } = FileDetailsSchema.parse(args);
+                const { filename: detailsFilename } = getSchemaForTool(name).parse(args);
                 
                 // Security check to prevent directory traversal
                 if (detailsFilename.includes('..') || detailsFilename.includes('/') || detailsFilename.includes('\\')) {
@@ -451,7 +465,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
                 return responseToString(details);
 
             case "list_data_files":
-                const { fileType } = ListDataFilesSchema.parse(args);
+                const { fileType } = getSchemaForTool(name).parse(args);
                 const files = listDataFiles(fileType);
                 return responseToString({ files, path: getDataDir() });
 
