@@ -12,10 +12,8 @@ import { zodToJsonSchema } from 'zod-to-json-schema';
 import fs from 'fs';
 import path from 'path';
 import readline from 'readline';
-import { fileURLToPath } from 'url';
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+// CJS compatibility for __dirname
+const __dirname = process.cwd();
 const DATA_DIR = path.join(__dirname, 'data');
 
 const responseToString = (response: any) => {
@@ -237,105 +235,110 @@ function listDataFiles(fileType?: string): string[] {
     }
 }
 
+// Lazy-loaded tool definitions
+function getToolDefinitions() {
+    return [
+        {
+            name: "osrs_wiki_search",
+            description: "Search the OSRS Wiki for pages matching a search term.",
+            inputSchema: convertZodToJsonSchema(OsrsWikiSearchSchema),
+        },
+        {
+            name: "osrs_wiki_get_page_info",
+            description: "Get information about specific pages on the OSRS Wiki.",
+            inputSchema: convertZodToJsonSchema(OsrsWikiGetPageInfoSchema),
+        },
+        {
+            name: "osrs_wiki_parse_page",
+            description: "Get the parsed HTML content of a specific OSRS Wiki page.",
+            inputSchema: convertZodToJsonSchema(OsrsWikiParsePageSchema),
+        },
+        {
+            name: "search_varptypes",
+            description: "Search the varptypes.txt file for player variables (varps) that store player state and progress.",
+            inputSchema: convertZodToJsonSchema(FileSearchSchema),
+        },
+        {
+            name: "search_varbittypes",
+            description: "Search the varbittypes.txt file for variable bits (varbits) that store individual bits from varps.",
+            inputSchema: convertZodToJsonSchema(FileSearchSchema),
+        },
+        {
+            name: "search_iftypes",
+            description: "Search the iftypes.txt file for interface definitions used in the game's UI.",
+            inputSchema: convertZodToJsonSchema(FileSearchSchema),
+        },
+        {
+            name: "search_invtypes",
+            description: "Search the invtypes.txt file for inventory type definitions in the game.",
+            inputSchema: convertZodToJsonSchema(FileSearchSchema),
+        },
+        {
+            name: "search_loctypes",
+            description: "Search the loctypes.txt file for location/object type definitions in the game world.",
+            inputSchema: convertZodToJsonSchema(FileSearchSchema),
+        },
+        {
+            name: "search_npctypes",
+            description: "Search the npctypes.txt file for NPC (non-player character) definitions.",
+            inputSchema: convertZodToJsonSchema(FileSearchSchema),
+        },
+        {
+            name: "search_objtypes",
+            description: "Search the objtypes.txt file for object/item definitions in the game.",
+            inputSchema: convertZodToJsonSchema(FileSearchSchema),
+        },
+        {
+            name: "search_rowtypes",
+            description: "Search the rowtypes.txt file for row definitions used in various interfaces.",
+            inputSchema: convertZodToJsonSchema(FileSearchSchema),
+        },
+        {
+            name: "search_seqtypes",
+            description: "Search the seqtypes.txt file for animation sequence definitions.",
+            inputSchema: convertZodToJsonSchema(FileSearchSchema),
+        },
+        {
+            name: "search_soundtypes",
+            description: "Search the soundtypes.txt file for sound effect definitions in the game.",
+            inputSchema: convertZodToJsonSchema(FileSearchSchema),
+        },
+        {
+            name: "search_spottypes",
+            description: "Search the spottypes.txt file for spot animation (graphical effect) definitions.",
+            inputSchema: convertZodToJsonSchema(FileSearchSchema),
+        },
+        {
+            name: "search_spritetypes",
+            description: "Search the spritetypes.txt file for sprite image definitions used in the interface.",
+            inputSchema: convertZodToJsonSchema(FileSearchSchema),
+        },
+        {
+            name: "search_tabletypes",
+            description: "Search the tabletypes.txt file for interface tab definitions.",
+            inputSchema: convertZodToJsonSchema(FileSearchSchema),
+        },
+        {
+            name: "search_data_file",
+            description: "Search any file in the data directory for matching entries.",
+            inputSchema: convertZodToJsonSchema(GenericFileSearchSchema),
+        },
+        {
+            name: "get_file_details",
+            description: "Get details about a file in the data directory.",
+            inputSchema: convertZodToJsonSchema(FileDetailsSchema),
+        },
+        {
+            name: "list_data_files",
+            description: "List available data files in the data directory.",
+            inputSchema: convertZodToJsonSchema(ListDataFilesSchema),
+        },
+    ];
+}
+
 server.setRequestHandler(ListToolsRequestSchema, async () => {
     return {
-        tools: [
-            {
-                name: "osrs_wiki_search",
-                description: "Search the OSRS Wiki for pages matching a search term.",
-                inputSchema: convertZodToJsonSchema(OsrsWikiSearchSchema),
-            },
-            {
-                name: "osrs_wiki_get_page_info",
-                description: "Get information about specific pages on the OSRS Wiki.",
-                inputSchema: convertZodToJsonSchema(OsrsWikiGetPageInfoSchema),
-            },
-            {
-                name: "osrs_wiki_parse_page",
-                description: "Get the parsed HTML content of a specific OSRS Wiki page.",
-                inputSchema: convertZodToJsonSchema(OsrsWikiParsePageSchema),
-            },
-            {
-                name: "search_varptypes",
-                description: "Search the varptypes.txt file for player variables (varps) that store player state and progress.",
-                inputSchema: convertZodToJsonSchema(FileSearchSchema),
-            },
-            {
-                name: "search_varbittypes",
-                description: "Search the varbittypes.txt file for variable bits (varbits) that store individual bits from varps.",
-                inputSchema: convertZodToJsonSchema(FileSearchSchema),
-            },
-            {
-                name: "search_iftypes",
-                description: "Search the iftypes.txt file for interface definitions used in the game's UI.",
-                inputSchema: convertZodToJsonSchema(FileSearchSchema),
-            },
-            {
-                name: "search_invtypes",
-                description: "Search the invtypes.txt file for inventory type definitions in the game.",
-                inputSchema: convertZodToJsonSchema(FileSearchSchema),
-            },
-            {
-                name: "search_loctypes",
-                description: "Search the loctypes.txt file for location/object type definitions in the game world.",
-                inputSchema: convertZodToJsonSchema(FileSearchSchema),
-            },
-            {
-                name: "search_npctypes",
-                description: "Search the npctypes.txt file for NPC (non-player character) definitions.",
-                inputSchema: convertZodToJsonSchema(FileSearchSchema),
-            },
-            {
-                name: "search_objtypes",
-                description: "Search the objtypes.txt file for object/item definitions in the game.",
-                inputSchema: convertZodToJsonSchema(FileSearchSchema),
-            },
-            {
-                name: "search_rowtypes",
-                description: "Search the rowtypes.txt file for row definitions used in various interfaces.",
-                inputSchema: convertZodToJsonSchema(FileSearchSchema),
-            },
-            {
-                name: "search_seqtypes",
-                description: "Search the seqtypes.txt file for animation sequence definitions.",
-                inputSchema: convertZodToJsonSchema(FileSearchSchema),
-            },
-            {
-                name: "search_soundtypes",
-                description: "Search the soundtypes.txt file for sound effect definitions in the game.",
-                inputSchema: convertZodToJsonSchema(FileSearchSchema),
-            },
-            {
-                name: "search_spottypes",
-                description: "Search the spottypes.txt file for spot animation (graphical effect) definitions.",
-                inputSchema: convertZodToJsonSchema(FileSearchSchema),
-            },
-            {
-                name: "search_spritetypes",
-                description: "Search the spritetypes.txt file for sprite image definitions used in the interface.",
-                inputSchema: convertZodToJsonSchema(FileSearchSchema),
-            },
-            {
-                name: "search_tabletypes",
-                description: "Search the tabletypes.txt file for interface tab definitions.",
-                inputSchema: convertZodToJsonSchema(FileSearchSchema),
-            },
-            {
-                name: "search_data_file",
-                description: "Search any file in the data directory for matching entries.",
-                inputSchema: convertZodToJsonSchema(GenericFileSearchSchema),
-            },
-            {
-                name: "get_file_details",
-                description: "Get details about a file in the data directory.",
-                inputSchema: convertZodToJsonSchema(FileDetailsSchema),
-            },
-            {
-                name: "list_data_files",
-                description: "List available data files in the data directory.",
-                inputSchema: convertZodToJsonSchema(ListDataFilesSchema),
-            },
-        ]
+        tools: getToolDefinitions()
     };
 });
 
