@@ -172,9 +172,14 @@ async function searchFile(filePath: string, searchTerm: string, page: number = 1
  * @param filename The filename to check
  * @returns Boolean indicating if the file exists
  */
-function fileExists(filename: string): boolean {
+async function fileExists(filename: string): Promise<boolean> {
     const filePath = path.join(getDataDir(), filename);
-    return fs.existsSync(filePath);
+    try {
+        await fs.promises.access(filePath);
+        return true;
+    } catch {
+        return false;
+    }
 }
 
 /**
@@ -182,15 +187,15 @@ function fileExists(filename: string): boolean {
  * @param filename The filename to get details for
  * @returns Object with file details
  */
-function getFileDetails(filename: string): any {
+async function getFileDetails(filename: string): Promise<any> {
     try {
         const filePath = path.join(getDataDir(), filename);
         if (!fs.existsSync(filePath)) {
             return { exists: false };
         }
 
-        const stats = fs.statSync(filePath);
-        const lineCount = getFileLineCount(filePath);
+        const stats = await fs.promises.stat(filePath);
+        const lineCount = await getFileLineCount(filePath);
 
         return {
             exists: true,
@@ -210,14 +215,20 @@ function getFileDetails(filename: string): any {
  * @param filePath Path to the file
  * @returns Number of lines in the file
  */
-function getFileLineCount(filePath: string): number {
-    try {
-        const content = fs.readFileSync(filePath, 'utf8');
-        return content.split('\n').length;
-    } catch (error) {
-        console.error(`Error counting lines in ${filePath}:`, error);
-        return 0;
-    }
+async function getFileLineCount(filePath: string): Promise<number> {
+    return new Promise((resolve, reject) => {
+        let lineCount = 0;
+        const stream = fs.createReadStream(filePath);
+        stream.on('data', (chunk) => {
+            for (let i = 0; i < chunk.length; i++) {
+                if (chunk[i] === 10) { // ASCII code for newline
+                    lineCount++;
+                }
+            }
+        });
+        stream.on('end', () => resolve(lineCount));
+        stream.on('error', reject);
+    });
 }
 
 /**
@@ -225,9 +236,9 @@ function getFileLineCount(filePath: string): number {
  * @param fileType Optional filter for file type
  * @returns Array of file names
  */
-function listDataFiles(fileType?: string): string[] {
+async function listDataFiles(fileType?: string): Promise<string[]> {
     try {
-        const files = fs.readdirSync(getDataDir());
+        const files = await fs.promises.readdir(getDataDir());
         
         if (fileType) {
             return files.filter(file => file.endsWith(`.${fileType}`));
@@ -468,13 +479,13 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
                     throw new Error('Invalid filename');
                 }
                 
-                const details = getFileDetails(detailsFilename);
+                const details = await getFileDetails(detailsFilename);
                 return responseToString(details);
 
             case "list_data_files":
                 const listFilesArgs = getSchemaForTool(name).parse(args) as { fileType?: string };
                 const { fileType } = listFilesArgs;
-                const files = listDataFiles(fileType);
+                const files = await listDataFiles(fileType);
                 return responseToString({ files, path: getDataDir() });
 
             default:
