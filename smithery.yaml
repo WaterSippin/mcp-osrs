@@ -1,13 +1,1 @@
-startCommand:
-  type: "stdio"
-  configSchema:
-    type: "object"
-    properties: {}
-    additionalProperties: false
-  commandFunction:
-    # A JS function that produces the CLI command based on the given config to start the MCP on stdio.
-    |-
-    (config) => ({
-      command: 'node',
-      args: ['dist/index.js']
-    })
+runtime: "typescript"
