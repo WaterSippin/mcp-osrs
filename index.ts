@@ -14,7 +14,11 @@ import path from 'path';
 import readline from 'readline';
 // CJS compatibility for __dirname
 const __dirname = process.cwd();
-const DATA_DIR = path.join(__dirname, 'data');
+
+// Lazy initialization of DATA_DIR to avoid file system access during module loading
+function getDataDir() {
+    return path.join(__dirname, 'data');
+}
 
 const responseToString = (response: any) => {
     const contentText = typeof response === 'string' ? response : JSON.stringify(response);
@@ -168,7 +172,7 @@ async function searchFile(filePath: string, searchTerm: string, page: number = 1
  * @returns Boolean indicating if the file exists
  */
 function fileExists(filename: string): boolean {
-    const filePath = path.join(DATA_DIR, filename);
+    const filePath = path.join(getDataDir(), filename);
     return fs.existsSync(filePath);
 }
 
@@ -179,7 +183,7 @@ function fileExists(filename: string): boolean {
  */
 function getFileDetails(filename: string): any {
     try {
-        const filePath = path.join(DATA_DIR, filename);
+        const filePath = path.join(getDataDir(), filename);
         if (!fs.existsSync(filePath)) {
             return { exists: false };
         }
@@ -222,7 +226,7 @@ function getFileLineCount(filePath: string): number {
  */
 function listDataFiles(fileType?: string): string[] {
     try {
-        const files = fs.readdirSync(DATA_DIR);
+        const files = fs.readdirSync(getDataDir());
         
         if (fileType) {
             return files.filter(file => file.endsWith(`.${fileType}`));
@@ -235,103 +239,114 @@ function listDataFiles(fileType?: string): string[] {
     }
 }
 
-// Lazy-loaded tool definitions
+// Pre-computed schemas to avoid runtime conversion during tool listing
+const toolSchemas = {
+    osrsWikiSearch: convertZodToJsonSchema(OsrsWikiSearchSchema),
+    osrsWikiGetPageInfo: convertZodToJsonSchema(OsrsWikiGetPageInfoSchema),
+    osrsWikiParsePage: convertZodToJsonSchema(OsrsWikiParsePageSchema),
+    fileSearch: convertZodToJsonSchema(FileSearchSchema),
+    genericFileSearch: convertZodToJsonSchema(GenericFileSearchSchema),
+    fileDetails: convertZodToJsonSchema(FileDetailsSchema),
+    listDataFiles: convertZodToJsonSchema(ListDataFilesSchema),
+};
+
+// Lazy-loaded tool definitions - no file system access during listing
 function getToolDefinitions() {
     return [
         {
             name: "osrs_wiki_search",
             description: "Search the OSRS Wiki for pages matching a search term.",
-            inputSchema: convertZodToJsonSchema(OsrsWikiSearchSchema),
+            inputSchema: toolSchemas.osrsWikiSearch,
         },
         {
             name: "osrs_wiki_get_page_info",
             description: "Get information about specific pages on the OSRS Wiki.",
-            inputSchema: convertZodToJsonSchema(OsrsWikiGetPageInfoSchema),
+            inputSchema: toolSchemas.osrsWikiGetPageInfo,
         },
         {
             name: "osrs_wiki_parse_page",
             description: "Get the parsed HTML content of a specific OSRS Wiki page.",
-            inputSchema: convertZodToJsonSchema(OsrsWikiParsePageSchema),
+            inputSchema: toolSchemas.osrsWikiParsePage,
         },
         {
             name: "search_varptypes",
             description: "Search the varptypes.txt file for player variables (varps) that store player state and progress.",
-            inputSchema: convertZodToJsonSchema(FileSearchSchema),
+            inputSchema: toolSchemas.fileSearch,
         },
         {
             name: "search_varbittypes",
             description: "Search the varbittypes.txt file for variable bits (varbits) that store individual bits from varps.",
-            inputSchema: convertZodToJsonSchema(FileSearchSchema),
+            inputSchema: toolSchemas.fileSearch,
         },
         {
             name: "search_iftypes",
             description: "Search the iftypes.txt file for interface definitions used in the game's UI.",
-            inputSchema: convertZodToJsonSchema(FileSearchSchema),
+            inputSchema: toolSchemas.fileSearch,
         },
         {
             name: "search_invtypes",
             description: "Search the invtypes.txt file for inventory type definitions in the game.",
-            inputSchema: convertZodToJsonSchema(FileSearchSchema),
+            inputSchema: toolSchemas.fileSearch,
         },
         {
             name: "search_loctypes",
             description: "Search the loctypes.txt file for location/object type definitions in the game world.",
-            inputSchema: convertZodToJsonSchema(FileSearchSchema),
+            inputSchema: toolSchemas.fileSearch,
         },
         {
             name: "search_npctypes",
             description: "Search the npctypes.txt file for NPC (non-player character) definitions.",
-            inputSchema: convertZodToJsonSchema(FileSearchSchema),
+            inputSchema: toolSchemas.fileSearch,
         },
         {
             name: "search_objtypes",
             description: "Search the objtypes.txt file for object/item definitions in the game.",
-            inputSchema: convertZodToJsonSchema(FileSearchSchema),
+            inputSchema: toolSchemas.fileSearch,
         },
         {
             name: "search_rowtypes",
             description: "Search the rowtypes.txt file for row definitions used in various interfaces.",
-            inputSchema: convertZodToJsonSchema(FileSearchSchema),
+            inputSchema: toolSchemas.fileSearch,
         },
         {
             name: "search_seqtypes",
             description: "Search the seqtypes.txt file for animation sequence definitions.",
-            inputSchema: convertZodToJsonSchema(FileSearchSchema),
+            inputSchema: toolSchemas.fileSearch,
         },
         {
             name: "search_soundtypes",
             description: "Search the soundtypes.txt file for sound effect definitions in the game.",
-            inputSchema: convertZodToJsonSchema(FileSearchSchema),
+            inputSchema: toolSchemas.fileSearch,
         },
         {
             name: "search_spottypes",
             description: "Search the spottypes.txt file for spot animation (graphical effect) definitions.",
-            inputSchema: convertZodToJsonSchema(FileSearchSchema),
+            inputSchema: toolSchemas.fileSearch,
         },
         {
             name: "search_spritetypes",
             description: "Search the spritetypes.txt file for sprite image definitions used in the interface.",
-            inputSchema: convertZodToJsonSchema(FileSearchSchema),
+            inputSchema: toolSchemas.fileSearch,
         },
         {
             name: "search_tabletypes",
             description: "Search the tabletypes.txt file for interface tab definitions.",
-            inputSchema: convertZodToJsonSchema(FileSearchSchema),
+            inputSchema: toolSchemas.fileSearch,
         },
         {
             name: "search_data_file",
             description: "Search any file in the data directory for matching entries.",
-            inputSchema: convertZodToJsonSchema(GenericFileSearchSchema),
+            inputSchema: toolSchemas.genericFileSearch,
         },
         {
             name: "get_file_details",
             description: "Get details about a file in the data directory.",
-            inputSchema: convertZodToJsonSchema(FileDetailsSchema),
+            inputSchema: toolSchemas.fileDetails,
         },
         {
             name: "list_data_files",
             description: "List available data files in the data directory.",
-            inputSchema: convertZodToJsonSchema(ListDataFilesSchema),
+            inputSchema: toolSchemas.listDataFiles,
         },
     ];
 }
@@ -399,7 +414,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
             case "search_tabletypes":
                 const { query, page: filePage = 1, pageSize: filePageSize = 10 } = FileSearchSchema.parse(args);
                 const filename = `${name.replace('search_', '')}.txt`;
-                const filePath = path.join(DATA_DIR, filename);
+                const filePath = path.join(getDataDir(), filename);
                 
                 if (!fileExists(filename)) {
                     return responseToString({ error: `${filename} not found in data directory` });
@@ -420,7 +435,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
                     return responseToString({ error: `${genericFilename} not found in data directory` });
                 }
                 
-                const genericFilePath = path.join(DATA_DIR, genericFilename);
+                const genericFilePath = path.join(getDataDir(), genericFilename);
                 const genericFileResults = await searchFile(genericFilePath, searchQuery, genericFilePage, genericFilePageSize);
                 return responseToString(genericFileResults);
 
@@ -438,7 +453,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
             case "list_data_files":
                 const { fileType } = ListDataFilesSchema.parse(args);
                 const files = listDataFiles(fileType);
-                return responseToString({ files, path: DATA_DIR });
+                return responseToString({ files, path: getDataDir() });
 
             default:
                 throw new Error(`Unknown tool: ${name}`);
