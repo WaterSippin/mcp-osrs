@@ -377,7 +377,8 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
     try {
         switch (name) {
             case "osrs_wiki_search":
-                const { search, limit = 10, offset = 0 } = getSchemaForTool(name).parse(args);
+                const wikiSearchArgs = getSchemaForTool(name).parse(args) as { search: string; limit?: number; offset?: number };
+                const { search, limit = 10, offset = 0 } = wikiSearchArgs;
                 const searchResponse = await osrsApiClient.get('', {
                     params: {
                         action: 'query',
@@ -391,7 +392,8 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
                 return responseToString(searchResponse.data);
 
             case "osrs_wiki_get_page_info":
-                const { titles } = getSchemaForTool(name).parse(args);
+                const pageInfoArgs = getSchemaForTool(name).parse(args) as { titles: string };
+                const { titles } = pageInfoArgs;
                 const pageInfoResponse = await osrsApiClient.get('', {
                     params: {
                         action: 'query',
@@ -402,7 +404,8 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
                 return responseToString(pageInfoResponse.data);
 
             case "osrs_wiki_parse_page":
-                const { page } = getSchemaForTool(name).parse(args);
+                const parsePageArgs = getSchemaForTool(name).parse(args) as { page: string };
+                const { page } = parsePageArgs;
                 const parseResponse = await osrsApiClient.get('', {
                     params: {
                         action: 'parse',
@@ -426,7 +429,8 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
             case "search_spottypes":
             case "search_spritetypes":
             case "search_tabletypes":
-                const { query, page: filePage = 1, pageSize: filePageSize = 10 } = getSchemaForTool(name).parse(args);
+                const fileSearchArgs = getSchemaForTool(name).parse(args) as { query: string; page?: number; pageSize?: number };
+                const { query, page: filePage = 1, pageSize: filePageSize = 10 } = fileSearchArgs;
                 const filename = `${name.replace('search_', '')}.txt`;
                 const filePath = path.join(getDataDir(), filename);
                 
@@ -438,7 +442,8 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
                 return responseToString(fileResults);
 
             case "search_data_file":
-                const { filename: genericFilename, query: searchQuery, page: genericFilePage = 1, pageSize: genericFilePageSize = 10 } = getSchemaForTool(name).parse(args);
+                const genericSearchArgs = getSchemaForTool(name).parse(args) as { filename: string; query: string; page?: number; pageSize?: number };
+                const { filename: genericFilename, query: searchQuery, page: genericFilePage = 1, pageSize: genericFilePageSize = 10 } = genericSearchArgs;
                 
                 // Security check to prevent directory traversal
                 if (genericFilename.includes('..') || genericFilename.includes('/') || genericFilename.includes('\\')) {
@@ -454,7 +459,8 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
                 return responseToString(genericFileResults);
 
             case "get_file_details":
-                const { filename: detailsFilename } = getSchemaForTool(name).parse(args);
+                const detailsArgs = getSchemaForTool(name).parse(args) as { filename: string };
+                const { filename: detailsFilename } = detailsArgs;
                 
                 // Security check to prevent directory traversal
                 if (detailsFilename.includes('..') || detailsFilename.includes('/') || detailsFilename.includes('\\')) {
@@ -465,7 +471,8 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
                 return responseToString(details);
 
             case "list_data_files":
-                const { fileType } = getSchemaForTool(name).parse(args);
+                const listFilesArgs = getSchemaForTool(name).parse(args) as { fileType?: string };
+                const { fileType } = listFilesArgs;
                 const files = listDataFiles(fileType);
                 return responseToString({ files, path: getDataDir() });
 
