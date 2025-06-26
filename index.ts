@@ -17,7 +17,8 @@ const __dirname = process.cwd();
 
 // Lazy initialization of DATA_DIR to avoid file system access during module loading
 function getDataDir() {
-    return path.join(__dirname, 'data');
+    // In compiled version, data is in same directory as index.js
+    return path.join(__dirname, 'dist', 'data');
 }
 
 const responseToString = (response: any) => {
@@ -526,9 +527,13 @@ async function main() {
     }
 }
 
-main().catch((error) => {
-    console.error("Fatal error in main():", error);
-    process.exit(1);
-});
+// Only start server if this is the main module (not imported)
+// Check if this file is being run directly
+if (process.argv[1] && (process.argv[1].endsWith('index.js') || process.argv[1].endsWith('index.ts'))) {
+    main().catch((error) => {
+        console.error("Fatal error in main():", error);
+        process.exit(1);
+    });
+}
 
-export { server };
+export { server, main };
